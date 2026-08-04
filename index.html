@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sổ Bán Hàng</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230F3D2E'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle'%3E%F0%9F%8F%AA%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0F3D2E">
+<style>
+  :root{
+    --ink900:#0F3D2E; --ink700:#1B5940;
+    --paper:#FAF8F3; --card:#FFFFFF;
+    --amber:#E8A33D; --amberDark:#C9821F;
+    --red:#C1440E; --line:#E4DFD3; --muted:#7A7466; --text:#241F16;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--text);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+  .display{font-family:Georgia,'Times New Roman',serif;font-weight:600;}
+  .mono{font-family:'Courier New',monospace;}
+  header{background:var(--ink900);color:#fff;position:sticky;top:0;z-index:20;padding:10px 14px;}
+  .header-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:8px;}
+  .brand .title{font-size:19px;}
+  .badge{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--ink700);display:flex;align-items:center;gap:5px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:#7CDB9C;}
+  .dot.err{background:var(--red);}
+  nav{display:flex;gap:4px;overflow-x:auto;margin-top:8px;}
+  nav button{flex:none;display:flex;align-items:center;gap:5px;padding:8px 12px;border:none;border-radius:8px;background:transparent;color:#E8E4D9;font-size:13px;font-weight:600;cursor:pointer;}
+  nav button.active{background:var(--amber);color:var(--ink900);}
+  main{max-width:1000px;margin:0 auto;padding:16px 14px 60px;}
+  h2.section-title{font-size:22px;margin:0 0 14px;}
+  .btn{border:none;border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px;cursor:pointer;}
+  .btn-primary{background:var(--ink900);color:#fff;}
+  .btn-amber{background:var(--amber);color:var(--ink900);}
+  .btn-outline{background:transparent;border:1px solid var(--line);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;}
+  .row-between{display:flex;align-items:center;justify-content:space-between;}
+  input[type=text],input[type=number],input.field{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--line);font-size:14px;background:#fff;color:var(--text);}
+  .field-label{font-size:12px;color:var(--muted);margin-bottom:4px;}
+  .searchbar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:10px;}
+  .searchbar input{border:none;outline:none;flex:1;font-size:14px;background:transparent;}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+  .chip{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--line);background:#fff;cursor:pointer;}
+  .chip.active{background:var(--ink900);border-color:var(--ink900);color:#fff;}
+  .pos-layout{display:grid;grid-template-columns:1fr;gap:16px;}
+  @media(min-width:800px){.pos-layout{grid-template-columns:2fr 1fr;}}
+  .product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  @media(min-width:560px){.product-grid{grid-template-columns:repeat(3,1fr);}}
+  .product-card{text-align:left;padding:12px;cursor:pointer;position:relative;}
+  .product-card:disabled,.product-card.disabled{opacity:.4;}
+  .cat-tag{font-size:10px;font-family:'Courier New',monospace;padding:2px 6px;border-radius:5px;background:#F1EBDB;color:var(--amberDark);display:inline-block;margin-bottom:6px;}
+  .p-name{font-size:15px;line-height:1.2;margin-bottom:4px;}
+  .p-price{font-size:13px;color:var(--ink700);}
+  .p-stock{font-size:11px;color:var(--muted);margin-top:4px;}
+  .p-stock.low{color:var(--red);}
+  .receipt{position:sticky;top:96px;overflow:hidden;}
+  .receipt-head{padding:14px 16px 10px;display:flex;justify-content:space-between;align-items:center;}
+  .perforated{height:1px;background-image:radial-gradient(circle,var(--paper) 3px,transparent 3.5px);background-size:14px 1px;background-repeat:repeat-x;}
+  .cart-list{padding:6px 16px;max-height:40vh;overflow-y:auto;}
+  .cart-line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:14px;}
+  .cart-line .name{font-weight:600;}
+  .cart-line .sub{font-size:11px;color:var(--muted);font-family:'Courier New',monospace;}
+  .qty-btn{width:24px;height:24px;border-radius:50%;border:none;background:var(--paper);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;}
+  .rm-btn{color:var(--red);background:none;border:none;cursor:pointer;font-size:15px;padding:0 4px;}
+  .receipt-total{padding:14px 16px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{background:var(--paper);color:var(--muted);text-align:left;padding:10px 12px;font-weight:600;font-size:12px;}
+  td{padding:10px 12px;border-top:1px solid var(--line);}
+  .order-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;margin-bottom:8px;cursor:pointer;}
+  .order-item .oid{font-family:'Courier New',monospace;font-weight:600;font-size:13px;}
+  .order-item .odate{font-size:11px;color:var(--muted);}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;}
+  .stat-card{padding:14px;}
+  .stat-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .stat-value{font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:var(--ink900);}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:140px;padding-top:10px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;}
+  .bar{width:100%;background:var(--amber);border-radius:4px 4px 0 0;min-height:2px;}
+  .bar-label{font-size:10px;color:var(--muted);}
+  .top-list-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;}
+  .low-stock-box{padding:14px;background:#FBEDE4;border:1px solid #F0CBAE;margin-top:14px;}
+  .low-tag{font-size:12px;padding:4px 10px;border-radius:20px;background:#fff;color:var(--red);font-family:'Courier New',monospace;}
+  .overlay{position:fixed;inset:0;background:rgba(15,61,46,0.4);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;}
+  .modal{background:var(--paper);border-radius:14px;padding:20px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto;}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .close-btn{background:var(--card);border:1px solid var(--line);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:15px;}
+  .empty{text-align:center;padding:40px 10px;color:var(--muted);font-size:14px;}
+  .field-gap{margin-bottom:12px;}
+  .field-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  ::-webkit-scrollbar{width:7px;height:7px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+
+// ---------- storage ----------
+var STORAGE_KEY = "sobanhang-data-v1";
+function loadData(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+function saveData(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({products: state.products, orders: state.orders}));
+    state.saveError = false;
+  }catch(e){
+    state.saveError = true;
+  }
+}
+
+// ---------- seed ----------
+var SEED_PRODUCTS = [
+  {id:"p1", name:"Cà phê đen", price:18000, stock:40, category:"Đồ uống"},
+  {id:"p2", name:"Cà phê sữa", price:22000, stock:35, category:"Đồ uống"},
+  {id:"p3", name:"Trà đá", price:8000, stock:60, category:"Đồ uống"},
+  {id:"p4", name:"Bánh mì thịt", price:25000, stock:15, category:"Đồ ăn"},
+  {id:"p5", name:"Xôi mặn", price:20000, stock:12, category:"Đồ ăn"},
+  {id:"p6", name:"Nước suối", price:10000, stock:4, category:"Đồ uống"},
+  {id:"p7", name:"Bánh bao", price:15000, stock:20, category:"Đồ ăn"},
+  {id:"p8", name:"Sinh tố bơ", price:28000, stock:8, category:"Đồ uống"}
+];
+
+var loaded = loadData();
+var state = {
+  tab: "pos",
+  products: (loaded && loaded.products) || SEED_PRODUCTS,
+  orders: (loaded && loaded.orders) || [],
+  cart: [],
+  search: "",
+  category: "Tất cả",
+  modal: null, // {type:'product'|'checkout'|'orderDetail', data}
+  saveError: false
+};
+
+// ---------- helpers ----------
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function fmt(n){ return Number(n||0).toLocaleString("vi-VN") + "\u20ab"; }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+
+function categoriesList(){
+  var set = {};
+  state.products.forEach(function(p){ set[p.category]=true; });
+  return ["Tất cả"].concat(Object.keys(set));
+}
+function filteredProducts(){
+  return state.products.filter(function(p){
+    var matchCat = state.category==="Tất cả" || p.category===state.category;
+    var matchSearch = p.name.toLowerCase().indexOf(state.search.toLowerCase())!==-1;
+    return matchCat && matchSearch;
+  });
+}
+function cartLines(){
+  return state.cart.map(function(c){
+    var p = state.products.find(function(x){return x.id===c.id;});
+    if(!p) return null;
+    return Object.assign({}, p, {qty:c.qty});
+  }).filter(Boolean);
+}
+function cartTotal(){
+  return cartLines().reduce(function(s,l){ return s+l.price*l.qty; }, 0);
+}
+
+// ---------- mutations ----------
+function addToCart(id){
+  var p = state.products.find(function(x){return x.id===id;});
+  if(!p || p.stock<=0) return;
+  var existing = state.cart.find(function(x){return x.id===id;});
+  if(existing){
+    if(existing.qty>=p.stock) return;
+    existing.qty++;
+  } else {
+    state.cart.push({id:id, qty:1});
+  }
+  rerender();
+}
+function changeQty(id, delta){
+  var p = state.products.find(function(x){return x.id===id;});
+  var line = state.cart.find(function(x){return x.id===id;});
+  if(!line) return;
+  line.qty = Math.max(0, Math.min(p.stock, line.qty+delta));
+  state.cart = state.cart.filter(function(x){return x.qty>0;});
+  rerender();
+}
+function removeFromCart(id){
+  state.cart = state.cart.filter(function(x){return x.id!==id;});
+  rerender();
+}
+function completeOrder(cash){
+  var lines = cartLines();
+  var total = cartTotal();
+  var order = {
+    id: "HD"+Date.now().toString().slice(-8),
+    date: new Date().toISOString(),
+    items: lines.map(function(l){return {productId:l.id,name:l.name,price:l.price,qty:l.qty};}),
+    total: total,
+    received: cash,
+    change: cash-total
+  };
+  state.orders = [order].concat(state.orders);
+  state.products = state.products.map(function(p){
+    var line = lines.find(function(l){return l.id===p.id;});
+    return line ? Object.assign({}, p, {stock:p.stock-line.qty}) : p;
+  });
+  state.cart = [];
+  saveData();
+  state.modal = {type:"orderDetail", data:order};
+  rerender();
+}
+function saveProduct(data){
+  if(data.id){
+    state.products = state.products.map(function(p){return p.id===data.id ? data : p;});
+  } else {
+    data = Object.assign({}, data, {id:uid()});
+    state.products = state.products.concat([data]);
+  }
+  saveData();
+  state.modal = null;
+  rerender();
+}
+function deleteProduct(id){
+  state.products = state.products.filter(function(p){return p.id!==id;});
+  saveData();
+  state.modal = null;
+  rerender();
+}
+
+// ---------- render pieces ----------
+function renderHeader(){
+  var tabs = [
+    {id:"pos", label:"Bán hàng", icon:"\u{1F6D2}"},
+    {id:"products", label:"Sản phẩm", icon:"\u{1F4E6}"},
+    {id:"orders", label:"Đơn hàng", icon:"\u{1F9FE}"},
+    {id:"dashboard", label:"Thống kê", icon:"\u{1F4CA}"}
+  ];
+  var navHtml = tabs.map(function(t){
+    return '<button data-tab="'+t.id+'" class="'+(state.tab===t.id?"active":"")+'">'+t.icon+' '+t.label+'</button>';
+  }).join("");
+  return '<header><div class="header-row"><div class="brand">'+
+    '<span style="font-size:18px;">\u{1F3EA}</span>'+
+    '<span class="display title">Sổ Bán Hàng</span>'+
+    '<span class="badge"><span class="dot '+(state.saveError?"err":"")+'"></span>'+(state.saveError?"chưa lưu được":"đã lưu trên máy")+'</span>'+
+    '</div></div><nav>'+navHtml+'</nav></header>';
+}
+
+function renderPOS(){
+  var cats = categoriesList();
+  var chipsHtml = cats.map(function(c){
+    return '<button class="chip '+(state.category===c?"active":"")+'" data-cat="'+esc(c)+'">'+esc(c)+'</button>';
+  }).join("");
+  var prods = filteredProducts();
+  var gridHtml = prods.length ? prods.map(function(p){
+    var low = p.stock<=5;
+    return '<button class="card product-card '+(p.stock<=0?"disabled":"")+'" data-add="'+p.id+'" '+(p.stock<=0?"disabled":"")+'>'+
+      '<span class="cat-tag">'+esc(p.category)+'</span>'+
+      '<div class="display p-name">'+esc(p.name)+'</div>'+
+      '<div class="mono p-price">'+fmt(p.price)+'</div>'+
+      '<div class="p-stock '+(low?"low":"")+'">'+(p.stock<=0?"Hết hàng":"Còn "+p.stock)+'</div>'+
+      '</button>';
+  }).join("") : '<div class="empty" style="grid-column:1/-1;">Không tìm thấy sản phẩm nào.</div>';
+
+  var lines = cartLines();
+  var linesHtml = lines.length ? lines.map(function(l){
+    return '<div class="cart-line">'+
+      '<div style="flex:1;min-width:0;"><div class="name">'+esc(l.name)+'</div>'+
+      '<div class="sub">'+fmt(l.price)+' x '+l.qty+'</div></div>'+
+      '<div style="display:flex;align-items:center;gap:4px;">'+
+      '<button class="qty-btn" data-qty="'+l.id+':-1">\u2212</button>'+
+      '<span class="mono" style="width:16px;text-align:center;">'+l.qty+'</span>'+
+      '<button class="qty-btn" data-qty="'+l.id+':1">+</button>'+
+      '<button class="rm-btn" data-remove="'+l.id+'">\u2715</button>'+
+      '</div></div>';
+  }).join("") : '<div class="empty">Chưa có sản phẩm nào.<br>Chạm vào sản phẩm để thêm.</div>';
+
+  var total = cartTotal();
+  return '<div class="pos-layout">'+
+    '<div>'+
+    '<div class="searchbar">\u{1F50D}<input type="text" id="search-input" placeholder="Tìm sản phẩm..." value="'+esc(state.search)+'"></div>'+
+    '<div class="chips">'+chipsHtml+'</div>'+
+    '<div class="product-grid">'+gridHtml+'</div>'+
+    '</div>'+
+    '<div class="card receipt">'+
+    '<div class="receipt-head"><span class="display" style="font-size:18px;">Hóa đơn</span><span>\u{1F6D2}</span></div>'+
+    '<div class="perforated"></div>'+
+    '<div class="cart-list">'+linesHtml+'</div>'+
+    '<div class="perforated"></div>'+
+    '<div class="receipt-total">'+
+    '<div class="row-between" style="margin-bottom:10px;"><span class="display" style="font-size:17px;">Tổng cộng</span>'+
+    '<span class="mono" style="font-size:19px;font-weight:700;color:var(--ink900);">'+fmt(total)+'</span></div>'+
+    '<button class="btn btn-amber" style="width:100%;" id="checkout-btn" '+(lines.length?"":"disabled")+'>\u{1F4B5} Thanh toán</button>'+
+    '</div></div></div>';
+}
+
+function renderProducts(){
+  var rows = state.products.map(function(p){
+    var low = p.stock<=5;
+    return '<tr><td style="font-weight:600;">'+esc(p.name)+'</td>'+
+      '<td style="color:var(--muted);">'+esc(p.category)+'</td>'+
+      '<td class="mono">'+fmt(p.price)+'</td>'+
+      '<td class="mono" style="color:'+(low?"var(--red)":"var(--text)")+';">'+p.stock+(low?" \u26A0":"")+'</td>'+
+      '<td style="text-align:right;"><button class="btn btn-outline" data-edit="'+p.id+'">\u270E</button></td></tr>';
+  }).join("");
+  return '<div class="row-between" style="margin-bottom:14px;">'+
+    '<h2 class="section-title display" style="margin:0;">Sản phẩm</h2>'+
+    '<button class="btn btn-primary" id="new-product-btn">+ Thêm sản phẩm</button></div>'+
+    '<div class="card" style="overflow-x:auto;"><table><thead><tr><th>Tên</th><th>Danh mục</th><th>Giá</th><th>Tồn kho</th><th></th></tr></thead>'+
+    '<tbody>'+(rows || '<tr><td colspan="5" class="empty">Chưa có sản phẩm. Bấm "Thêm sản phẩm" để bắt đầu.</td></tr>')+'</tbody></table></div>';
+}
+
+function renderOrders(){
+  if(!state.orders.length){
+    return '<h2 class="section-title display">Đơn hàng</h2><div class="empty">Chưa có đơn hàng nào.</div>';
+  }
+  var itemsHtml = state.orders.map(function(o){
+    return '<div class="card order-item" data-order="'+o.id+'">'+
+      '<div><div class="oid">'+o.id+'</div><div class="odate">'+new Date(o.date).toLocaleString("vi-VN")+' \u00B7 '+o.items.length+' món</div></div>'+
+      '<div style="display:flex;align-items:center;gap:6px;"><span class="mono" style="font-weight:700;color:var(--ink900);">'+fmt(o.total)+'</span><span>\u203A</span></div></div>';
+  }).join("");
+  return '<h2 class="section-title display">Đơn hàng</h2>'+itemsHtml;
+}
+
+function renderDashboard(){
+  var today = todayStr();
+  var todaysOrders = state.orders.filter(function(o){return o.date.slice(0,10)===today;});
+  var todayRevenue = todaysOrders.reduce(function(s,o){return s+o.total;},0);
+
+  var days = [];
+  for(var i=6;i>=0;i--){
+    var d = new Date(); d.setDate(d.getDate()-i);
+    days.push(d.toISOString().slice(0,10));
+  }
+  var dayTotals = days.map(function(d){
+    return {day:d.slice(5), total: state.orders.filter(function(o){return o.date.slice(0,10)===d;}).reduce(function(s,o){return s+o.total;},0)};
+  });
+  var maxTotal = Math.max.apply(null, dayTotals.map(function(d){return d.total;}).concat([1]));
+  var barsHtml = dayTotals.map(function(d){
+    var h = Math.round((d.total/maxTotal)*100);
+    return '<div class="bar-col"><div class="bar" style="height:'+Math.max(h,2)+'%;" title="'+fmt(d.total)+'"></div><div class="bar-label">'+d.day+'</div></div>';
+  }).join("");
+
+  var counts = {};
+  state.orders.forEach(function(o){ o.items.forEach(function(it){ counts[it.name]=(counts[it.name]||0)+it.qty; }); });
+  var top = Object.keys(counts).map(function(k){return [k,counts[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+  var topHtml = top.length ? top.map(function(t,i){
+    return '<div class="top-list-row"><span><span class="mono" style="color:var(--muted);margin-right:6px;">'+(i+1)+'</span>'+esc(t[0])+'</span><span class="mono">'+t[1]+' sp</span></div>';
+  }).join("") : '<div class="empty" style="padding:20px 0;">Chưa có dữ liệu.</div>';
+
+  var lowStock = state.products.filter(function(p){return p.stock<=5;});
+  var lowHtml = lowStock.length ? '<div class="card low-stock-box"><div style="font-weight:600;color:var(--red);margin-bottom:8px;">\u26A0 Sắp hết hàng</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+
+    lowStock.map(function(p){return '<span class="low-tag">'+esc(p.name)+' \u00B7 còn '+p.stock+'</span>';}).join("")+'</div></div>' : "";
+
+  return '<h2 class="section-title display">Thống kê</h2>'+
+    '<div class="stat-grid">'+
+    '<div class="card stat-card"><div class="stat-label">Doanh thu hôm nay</div><div class="stat-value">'+fmt(todayRevenue)+'</div></div>'+
+    '<div class="card stat-card"><div class="stat-label">Đơn hàng hôm nay</div><div class="stat-value">'+todaysOrders.length+'</div></div>'+
+    '<div class="card stat-card"><div class="stat-label">Tổng đơn hàng</div><div class="stat-value">'+state.orders.length+'</div></div>'+
+    '</div>'+
+    '<div class="pos-layout">'+
+    '<div class="card" style="padding:16px;"><div class="display" style="font-size:17px;margin-bottom:6px;">Doanh thu 7 ngày qua</div><div class="bars">'+barsHtml+'</div></div>'+
+    '<div class="card" style="padding:16px;"><div class="display" style="font-size:17px;margin-bottom:6px;">Bán chạy nhất</div>'+topHtml+'</div>'+
+    '</div>'+lowHtml;
+}
+
+// ---------- modals ----------
+function renderModal(){
+  if(!state.modal) return "";
+  if(state.modal.type==="product"){
+    var p = state.modal.data || {name:"",price:"",stock:"",category:""};
+    return '<div class="overlay" id="modal-overlay"><div class="modal">'+
+      '<div class="modal-head"><span class="display" style="font-size:18px;">'+(p.id?"Sửa sản phẩm":"Thêm sản phẩm")+'</span>'+
+      '<button class="close-btn" data-close="1">\u2715</button></div>'+
+      '<div class="field-gap"><div class="field-label">Tên sản phẩm</div><input class="field" id="f-name" type="text" value="'+esc(p.name)+'"></div>'+
+      '<div class="field-gap"><div class="field-label">Danh mục</div><input class="field" id="f-cat" type="text" placeholder="VD: Đồ uống" value="'+esc(p.category)+'"></div>'+
+      '<div class="field-row2 field-gap">'+
+      '<div><div class="field-label">Giá bán (đ)</div><input class="field mono" id="f-price" type="number" value="'+(p.price===""?"":p.price)+'"></div>'+
+      '<div><div class="field-label">Tồn kho</div><input class="field mono" id="f-stock" type="number" value="'+(p.stock===""?"":p.stock)+'"></div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;margin-top:6px;">'+
+      (p.id ? '<button class="btn btn-outline" style="color:var(--red);border-color:var(--red);" id="del-product-btn" data-id="'+p.id+'">Xóa</button>' : '')+
+      '<button class="btn btn-primary" style="flex:1;" id="save-product-btn" data-id="'+(p.id||"")+'">Lưu</button>'+
+      '</div></div></div>';
+  }
+  if(state.modal.type==="checkout"){
+    var total = cartTotal();
+    return '<div class="overlay" id="modal-overlay"><div class="modal">'+
+      '<div class="modal-head"><span class="display" style="font-size:18px;">Thanh toán</span><button class="close-btn" data-close="1">\u2715</button></div>'+
+      '<div style="text-align:center;margin-bottom:14px;"><div class="field-label">Tổng tiền</div><div class="mono" style="font-size:28px;font-weight:700;color:var(--ink900);">'+fmt(total)+'</div></div>'+
+      '<div class="field-gap"><div class="field-label">Khách đưa (đ)</div><input class="field mono" id="f-cash" type="number" value="'+total+'"></div>'+
+      '<div class="row-between" style="font-size:14px;margin-bottom:14px;"><span style="color:var(--muted);">Tiền thối lại</span><span class="mono" id="change-preview" style="font-weight:700;">'+fmt(0)+'</span></div>'+
+      '<button class="btn btn-amber" style="width:100%;" id="confirm-checkout-btn" data-total="'+total+'">Xác nhận thanh toán</button>'+
+      '</div></div>';
+  }
+  if(state.modal.type==="orderDetail"){
+    var o = state.modal.data;
+    var itemsHtml = o.items.map(function(it){
+      return '<div class="row-between" style="font-size:14px;padding:5px 0;"><span>'+esc(it.name)+' x'+it.qty+'</span><span class="mono">'+fmt(it.price*it.qty)+'</span></div>';
+    }).join("");
+    return '<div class="overlay" id="modal-overlay"><div class="modal">'+
+      '<div class="modal-head"><span class="display" style="font-size:18px;">Hóa đơn '+o.id+'</span><button class="close-btn" data-close="1">\u2715</button></div>'+
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">'+new Date(o.date).toLocaleString("vi-VN")+'</div>'+
+      '<div class="perforated"></div><div style="padding:6px 0;">'+itemsHtml+'</div><div class="perforated"></div>'+
+      '<div class="row-between" style="font-size:14px;padding:6px 0;"><span>Tổng cộng</span><span class="mono" style="font-weight:700;">'+fmt(o.total)+'</span></div>'+
+      '<div class="row-between" style="font-size:14px;padding:4px 0;color:var(--muted);"><span>Khách đưa</span><span class="mono">'+fmt(o.received)+'</span></div>'+
+      '<div class="row-between" style="font-size:14px;padding:4px 0;color:var(--muted);"><span>Tiền thối</span><span class="mono">'+fmt(o.change)+'</span></div>'+
+      '</div></div>';
+  }
+  return "";
+}
+
+// ---------- main render ----------
+var app = document.getElementById("app");
+
+function renderApp(){
+  var body = "";
+  if(state.tab==="pos") body = renderPOS();
+  else if(state.tab==="products") body = renderProducts();
+  else if(state.tab==="orders") body = renderOrders();
+  else if(state.tab==="dashboard") body = renderDashboard();
+  app.innerHTML = renderHeader() + '<main>'+body+'</main>' + renderModal();
+  bindEvents();
+}
+
+function rerender(){
+  var active = document.activeElement;
+  var activeId = active && active.id;
+  var selStart = active && typeof active.selectionStart==="number" ? active.selectionStart : null;
+  var selEnd = active && typeof active.selectionEnd==="number" ? active.selectionEnd : null;
+  renderApp();
+  if(activeId){
+    var el = document.getElementById(activeId);
+    if(el){
+      el.focus();
+      if(selStart!==null && el.setSelectionRange){
+        try{ el.setSelectionRange(selStart, selEnd); }catch(e){}
+      }
+    }
+  }
+}
+
+// ---------- events ----------
+function bindEvents(){
+  // tabs
+  app.querySelectorAll("[data-tab]").forEach(function(btn){
+    btn.onclick = function(){ state.tab = btn.getAttribute("data-tab"); state.modal=null; rerender(); };
+  });
+  // search
+  var searchInput = document.getElementById("search-input");
+  if(searchInput){
+    searchInput.oninput = function(){ state.search = searchInput.value; rerender(); };
+  }
+  // category chips
+  app.querySelectorAll("[data-cat]").forEach(function(btn){
+    btn.onclick = function(){ state.category = btn.getAttribute("data-cat"); rerender(); };
+  });
+  // add to cart
+  app.querySelectorAll("[data-add]").forEach(function(btn){
+    btn.onclick = function(){ addToCart(btn.getAttribute("data-add")); };
+  });
+  // qty +/-
+  app.querySelectorAll("[data-qty]").forEach(function(btn){
+    btn.onclick = function(){
+      var parts = btn.getAttribute("data-qty").split(":");
+      changeQty(parts[0], parseInt(parts[1],10));
+    };
+  });
+  // remove line
+  app.querySelectorAll("[data-remove]").forEach(function(btn){
+    btn.onclick = function(){ removeFromCart(btn.getAttribute("data-remove")); };
+  });
+  // checkout open
+  var checkoutBtn = document.getElementById("checkout-btn");
+  if(checkoutBtn){
+    checkoutBtn.onclick = function(){ if(cartLines().length){ state.modal={type:"checkout"}; rerender(); } };
+  }
+  // new product
+  var newProductBtn = document.getElementById("new-product-btn");
+  if(newProductBtn){
+    newProductBtn.onclick = function(){ state.modal={type:"product", data:{name:"",price:"",stock:"",category:""}}; rerender(); };
+  }
+  // edit product
+  app.querySelectorAll("[data-edit]").forEach(function(btn){
+    btn.onclick = function(){
+      var id = btn.getAttribute("data-edit");
+      var p = state.products.find(function(x){return x.id===id;});
+      state.modal = {type:"product", data:Object.assign({},p)};
+      rerender();
+    };
+  });
+  // order detail open
+  app.querySelectorAll("[data-order]").forEach(function(el){
+    el.onclick = function(){
+      var id = el.getAttribute("data-order");
+      var o = state.orders.find(function(x){return x.id===id;});
+      state.modal = {type:"orderDetail", data:o};
+      rerender();
+    };
+  });
+  // modal close
+  var overlay = document.getElementById("modal-overlay");
+  if(overlay){
+    overlay.onclick = function(e){ if(e.target===overlay){ state.modal=null; rerender(); } };
+  }
+  app.querySelectorAll("[data-close]").forEach(function(btn){
+    btn.onclick = function(){ state.modal=null; rerender(); };
+  });
+  // save product
+  var saveBtn = document.getElementById("save-product-btn");
+  if(saveBtn){
+    saveBtn.onclick = function(){
+      var name = document.getElementById("f-name").value.trim();
+      var cat = document.getElementById("f-cat").value.trim() || "Khác";
+      var price = Number(document.getElementById("f-price").value);
+      var stock = Number(document.getElementById("f-stock").value);
+      if(!name || isNaN(price) || isNaN(stock)) return;
+      var id = saveBtn.getAttribute("data-id");
+      saveProduct({id: id || undefined, name:name, category:cat, price:price, stock:stock});
+    };
+  }
+  // delete product
+  var delBtn = document.getElementById("del-product-btn");
+  if(delBtn){
+    delBtn.onclick = function(){ deleteProduct(delBtn.getAttribute("data-id")); };
+  }
+  // checkout cash input live preview
+  var cashInput = document.getElementById("f-cash");
+  if(cashInput){
+    var preview = document.getElementById("change-preview");
+    var total = cartTotal();
+    function updatePreview(){
+      var cash = Number(cashInput.value)||0;
+      var change = cash-total;
+      preview.textContent = fmt(Math.max(0,change));
+      preview.style.color = change<0 ? "var(--red)" : "var(--ink700)";
+      var confirmBtn = document.getElementById("confirm-checkout-btn");
+      if(confirmBtn) confirmBtn.disabled = change<0;
+    }
+    cashInput.oninput = updatePreview;
+    updatePreview();
+  }
+  var confirmBtn = document.getElementById("confirm-checkout-btn");
+  if(confirmBtn){
+    confirmBtn.onclick = function(){
+      var cash = Number(document.getElementById("f-cash").value)||0;
+      var total = Number(confirmBtn.getAttribute("data-total"));
+      if(cash<total) return;
+      completeOrder(cash);
+    };
+  }
+}
+
+renderApp();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("/sw.js").catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
