@@ -1,4 +1,183 @@
-tatus = "synced";
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sổ Bán Hàng</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230F3D2E'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle'%3E%F0%9F%8F%AA%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0F3D2E">
+<style>
+  :root{
+    --ink900:#0F3D2E; --ink700:#1B5940;
+    --paper:#FAF8F3; --card:#FFFFFF;
+    --amber:#E8A33D; --amberDark:#C9821F;
+    --red:#C1440E; --line:#E4DFD3; --muted:#7A7466; --text:#241F16;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--text);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+  .display{font-family:Georgia,'Times New Roman',serif;font-weight:600;}
+  .mono{font-family:'Courier New',monospace;}
+  header{background:var(--ink900);color:#fff;position:sticky;top:0;z-index:20;padding:10px 14px;}
+  .header-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:8px;}
+  .brand .title{font-size:19px;}
+  .badge{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--ink700);display:flex;align-items:center;gap:5px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:#7CDB9C;}
+  .dot.err{background:var(--red);}
+  nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:10px;}
+  nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px 4px;border:none;border-radius:10px;background:rgba(255,255,255,0.08);color:#E8E4D9;font-size:12px;font-weight:700;cursor:pointer;line-height:1.15;}
+  nav button .nav-icon{font-size:20px;}
+  nav button.active{background:var(--amber);color:var(--ink900);}
+  main{max-width:1000px;margin:0 auto;padding:14px 14px 90px;}
+  h2.section-title{font-size:22px;margin:0 0 14px;}
+  .btn{border:none;border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px;cursor:pointer;}
+  .btn-primary{background:var(--ink900);color:#fff;}
+  .btn-amber{background:var(--amber);color:var(--ink900);}
+  .btn-outline{background:transparent;border:1px solid var(--line);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;}
+  .row-between{display:flex;align-items:center;justify-content:space-between;}
+  input[type=text],input[type=number],input.field{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--line);font-size:14px;background:#fff;color:var(--text);}
+  .field-label{font-size:12px;color:var(--muted);margin-bottom:4px;}
+  .searchbar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:10px;}
+  .searchbar input{border:none;outline:none;flex:1;font-size:14px;background:transparent;}
+  .pos-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+  .icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#fff;flex:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .icon-btn.active{background:var(--ink900);color:#fff;border-color:var(--ink900);}
+  .search-pop{position:absolute;right:14px;left:14px;top:100%;margin-top:6px;z-index:15;}
+  .cartbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink900);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 -4px 14px rgba(0,0,0,0.15);}
+  .cartbar .cb-info{display:flex;flex-direction:column;line-height:1.2;}
+  .cartbar .cb-count{font-size:11px;color:#C9C4B3;}
+  .cartbar .cb-total{font-family:'Courier New',monospace;font-size:17px;font-weight:700;}
+  .chip{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--line);background:#fff;cursor:pointer;}
+  .chip.active{background:var(--ink900);border-color:var(--ink900);color:#fff;}
+  .pos-layout{display:grid;grid-template-columns:1fr;gap:16px;}
+  @media(min-width:800px){.pos-layout{grid-template-columns:2fr 1fr;}}
+  .product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  @media(min-width:560px){.product-grid{grid-template-columns:repeat(3,1fr);}}
+  .product-card{text-align:left;padding:12px;cursor:pointer;position:relative;}
+  .product-card:disabled,.product-card.disabled{opacity:.4;}
+  .cat-tag{font-size:10px;font-family:'Courier New',monospace;padding:2px 6px;border-radius:5px;background:#F1EBDB;color:var(--amberDark);display:inline-block;margin-bottom:6px;}
+  .p-name{font-size:15px;line-height:1.2;margin-bottom:4px;}
+  .p-price{font-size:13px;color:var(--ink700);}
+  .p-stock{font-size:11px;color:var(--muted);margin-top:4px;}
+  .p-stock.low{color:var(--red);}
+  .receipt{position:sticky;top:96px;overflow:hidden;}
+  .receipt-head{padding:14px 16px 10px;display:flex;justify-content:space-between;align-items:center;}
+  .perforated{height:1px;background-image:radial-gradient(circle,var(--paper) 3px,transparent 3.5px);background-size:14px 1px;background-repeat:repeat-x;}
+  .cart-list{padding:6px 16px;max-height:40vh;overflow-y:auto;}
+  .cart-line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:14px;}
+  .cart-line .name{font-weight:600;}
+  .cart-line .sub{font-size:11px;color:var(--muted);font-family:'Courier New',monospace;}
+  .qty-btn{width:24px;height:24px;border-radius:50%;border:none;background:var(--paper);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;}
+  .rm-btn{color:var(--red);background:none;border:none;cursor:pointer;font-size:15px;padding:0 4px;}
+  .receipt-total{padding:14px 16px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{background:var(--paper);color:var(--muted);text-align:left;padding:10px 12px;font-weight:600;font-size:12px;}
+  td{padding:10px 12px;border-top:1px solid var(--line);}
+  .order-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;margin-bottom:8px;cursor:pointer;}
+  .order-item .oid{font-family:'Courier New',monospace;font-weight:600;font-size:13px;}
+  .order-item .odate{font-size:11px;color:var(--muted);}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;}
+  .stat-card{padding:14px;}
+  .stat-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .stat-value{font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:var(--ink900);}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:140px;padding-top:10px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;}
+  .bar{width:100%;background:var(--amber);border-radius:4px 4px 0 0;min-height:2px;}
+  .bar-label{font-size:10px;color:var(--muted);}
+  .top-list-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;}
+  .low-stock-box{padding:14px;background:#FBEDE4;border:1px solid #F0CBAE;margin-top:14px;}
+  .low-tag{font-size:12px;padding:4px 10px;border-radius:20px;background:#fff;color:var(--red);font-family:'Courier New',monospace;}
+  .overlay{position:fixed;inset:0;background:rgba(15,61,46,0.4);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;}
+  .modal{background:var(--paper);border-radius:14px;padding:20px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto;}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .close-btn{background:var(--card);border:1px solid var(--line);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:15px;}
+  .empty{text-align:center;padding:40px 10px;color:var(--muted);font-size:14px;}
+  .field-gap{margin-bottom:12px;}
+  .field-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  ::-webkit-scrollbar{width:7px;height:7px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+
+// ---------- store identity ----------
+var STORE_ID_KEY = "sobanhang-store-id";
+var storeId = localStorage.getItem(STORE_ID_KEY) || null;
+function genStoreCode(){
+  var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I to avoid confusion
+  var code = "";
+  for(var i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+function setStoreId(id){
+  storeId = id;
+  try{ localStorage.setItem(STORE_ID_KEY, id); }catch(e){}
+}
+
+// ---------- storage ----------
+function storageKey(){ return "sobanhang-data-v1:" + storeId; }
+function apiUrl(){ return "/api/data?store=" + encodeURIComponent(storeId); }
+var lastKnownUpdatedAt = 0;
+var suppressPollUntil = 0;
+var syncStatus = "local"; // 'local' | 'syncing' | 'synced' | 'offline'
+
+function loadData(){
+  try{
+    var raw = localStorage.getItem(storageKey());
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+function saveLocal(){
+  try{
+    localStorage.setItem(storageKey(), JSON.stringify({products: state.products, orders: state.orders}));
+    state.saveError = false;
+  }catch(e){
+    state.saveError = true;
+  }
+}
+function saveData(){
+  saveLocal();
+  pushToCloud();
+}
+function pushToCloud(){
+  syncStatus = "syncing";
+  fetch(apiUrl(), {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({products: state.products, orders: state.orders})
+  }).then(function(res){
+    if(!res.ok) throw new Error("bad status");
+    return res.json();
+  }).then(function(json){
+    lastKnownUpdatedAt = json.updatedAt;
+    suppressPollUntil = Date.now() + 4000;
+    syncStatus = "synced";
+    rerender();
+  }).catch(function(){
+    syncStatus = "offline";
+    rerender();
+  });
+}
+function pullFromCloud(initial){
+  return fetch(apiUrl()).then(function(res){
+    if(!res.ok) throw new Error("bad status");
+    return res.json();
+  }).then(function(json){
+    if(json && json.products && json.updatedAt >= lastKnownUpdatedAt){
+      lastKnownUpdatedAt = json.updatedAt;
+      state.products = json.products;
+      state.orders = json.orders || [];
+      saveLocal();
+      syncStatus = "synced";
       if(!initial) rerender();
     } else if(initial){
       // no cloud data yet - push what we have locally (seed)
@@ -252,6 +431,7 @@ function renderHeader(){
     '<span style="font-size:18px;">\u{1F3EA}</span>'+
     '<span class="display title">Sổ Bán Hàng</span>'+
     '<span class="badge"><span class="dot '+(badgeErr?"err":"")+'"></span>'+badgeText+'</span>'+
+    '<span class="badge" id="store-code-btn" style="cursor:pointer;">\u{1F511} '+esc(storeId||"")+'</span>'+
     '</div></div><nav>'+navHtml+'</nav></header>';
 }
 
@@ -379,6 +559,17 @@ function renderDashboard(){
 // ---------- modals ----------
 function renderModal(){
   if(!state.modal) return "";
+  if(state.modal.type==="storecode"){
+    return '<div class="overlay" id="modal-overlay"><div class="modal">'+
+      '<div class="modal-head"><span class="display" style="font-size:18px;">Mã cửa hàng</span><button class="close-btn" data-close="1">\u2715</button></div>'+
+      '<div style="text-align:center;margin-bottom:16px;">'+
+      '<div class="mono" style="font-size:30px;font-weight:700;letter-spacing:4px;color:var(--ink900);padding:14px;background:var(--paper);border-radius:10px;">'+esc(storeId)+'</div>'+
+      '<div style="font-size:12px;color:var(--muted);margin-top:8px;">Đưa mã này cho nhân viên/thiết bị khác để cùng xem chung dữ liệu bán hàng.</div>'+
+      '</div>'+
+      '<button class="btn btn-amber" id="copy-store-code-btn" style="width:100%;margin-bottom:10px;">\u{1F4CB} Sao chép mã</button>'+
+      '<button class="btn btn-outline" id="switch-store-btn" style="width:100%;color:var(--red);border-color:var(--red);">Chuyển sang cửa hàng khác</button>'+
+      '</div></div>';
+  }
   if(state.modal.type==="cart"){
     var lines = cartLines();
     var linesHtml = lines.length ? lines.map(function(l){
@@ -494,6 +685,29 @@ function rerender(){
 
 // ---------- events ----------
 function bindEvents(){
+  // store code badge
+  var storeCodeBtn = document.getElementById("store-code-btn");
+  if(storeCodeBtn){
+    storeCodeBtn.onclick = function(){ state.modal = {type:"storecode"}; rerender(); };
+  }
+  var copyStoreCodeBtn = document.getElementById("copy-store-code-btn");
+  if(copyStoreCodeBtn){
+    copyStoreCodeBtn.onclick = function(){
+      var done = function(){ copyStoreCodeBtn.textContent = "\u2713 Đã sao chép"; setTimeout(function(){ copyStoreCodeBtn.textContent = "\u{1F4CB} Sao chép mã"; }, 1500); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(storeId).then(done).catch(function(){ prompt("Mã cửa hàng:", storeId); });
+      } else {
+        prompt("Mã cửa hàng:", storeId);
+      }
+    };
+  }
+  var switchStoreBtn = document.getElementById("switch-store-btn");
+  if(switchStoreBtn){
+    switchStoreBtn.onclick = function(){
+      try{ localStorage.removeItem(STORE_ID_KEY); }catch(e){}
+      location.reload();
+    };
+  }
   // tabs
   app.querySelectorAll("[data-tab]").forEach(function(btn){
     btn.onclick = function(){ state.tab = btn.getAttribute("data-tab"); state.modal=null; rerender(); };
@@ -627,4 +841,73 @@ function bindEvents(){
   if(confirmBtn){
     confirmBtn.onclick = function(){
       var cash = Number(document.getElementById("f-cash").value)||0;
-      var total = Number(confirmBtn.getAttribu
+      var total = Number(confirmBtn.getAttribute("data-total"));
+      if(cash<total) return;
+      completeOrder(cash);
+    };
+  }
+}
+
+function bootApp(){
+  renderApp();
+  pullFromCloud(true).then(rerender);
+  startPolling();
+}
+
+function renderOnboarding(mode){
+  var app = document.getElementById("app");
+  var joinMode = mode === "join";
+  app.innerHTML =
+    '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">'+
+    '<div class="card" style="max-width:360px;width:100%;padding:24px;text-align:center;">'+
+    '<div style="font-size:32px;margin-bottom:8px;">\u{1F3EA}</div>'+
+    '<div class="display" style="font-size:22px;margin-bottom:6px;">Sổ Bán Hàng</div>'+
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Mỗi cửa hàng có 1 mã riêng để giữ dữ liệu tách biệt.</div>'+
+    (joinMode ?
+      '<div class="field-gap"><div class="field-label" style="text-align:left;">Nhập mã cửa hàng (6 ký tự)</div>'+
+      '<input class="field mono" id="join-code-input" type="text" maxlength="6" style="text-align:center;font-size:18px;letter-spacing:2px;text-transform:uppercase;" placeholder="VD: A3K9QZ"></div>'+
+      '<button class="btn btn-amber" id="join-confirm-btn" style="width:100%;margin-bottom:10px;">Vào cửa hàng</button>'+
+      '<button class="btn btn-outline" id="back-to-choice-btn" style="width:100%;">Quay lại</button>'
+      :
+      '<button class="btn btn-amber" id="create-store-btn" style="width:100%;margin-bottom:10px;">\u2728 Tạo cửa hàng mới</button>'+
+      '<button class="btn btn-outline" id="show-join-btn" style="width:100%;">Vào cửa hàng đã có (nhập mã)</button>'
+    )+
+    '</div></div>';
+
+  var createBtn = document.getElementById("create-store-btn");
+  if(createBtn) createBtn.onclick = function(){
+    setStoreId(genStoreCode());
+    state.products = SEED_PRODUCTS;
+    state.orders = [];
+    bootApp();
+  };
+  var showJoinBtn = document.getElementById("show-join-btn");
+  if(showJoinBtn) showJoinBtn.onclick = function(){ renderOnboarding("join"); };
+  var backBtn = document.getElementById("back-to-choice-btn");
+  if(backBtn) backBtn.onclick = function(){ renderOnboarding(); };
+  var joinConfirmBtn = document.getElementById("join-confirm-btn");
+  if(joinConfirmBtn) joinConfirmBtn.onclick = function(){
+    var input = document.getElementById("join-code-input");
+    var code = (input.value || "").trim().toUpperCase();
+    if(code.length < 4){ input.focus(); return; }
+    setStoreId(code);
+    state.products = [];
+    state.orders = [];
+    bootApp();
+  };
+}
+
+if(storeId){
+  bootApp();
+} else {
+  renderOnboarding();
+}
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("/sw.js").catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
