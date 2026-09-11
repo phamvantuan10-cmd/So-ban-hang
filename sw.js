@@ -1,9 +1,17 @@
-var CACHE_NAME = "so-ban-hang-v1";
+var CACHE_NAME = "so-ban-hang-v3";
 var ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png", "/icon-512-maskable.png"];
 
 self.addEventListener("install", function(event){
   event.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache){ return cache.addAll(ASSETS); })
+    caches.open(CACHE_NAME).then(function(cache){
+      return Promise.all(
+        ASSETS.map(function(url){
+          return cache.add(url).catch(function(){
+            // one asset failing (e.g. offline right now) must not block the rest
+          });
+        })
+      );
+    })
   );
   self.skipWaiting();
 });
@@ -17,15 +25,4 @@ self.addEventListener("activate", function(event){
   self.clients.claim();
 });
 
-self.addEventListener("fetch", function(event){
-  event.respondWith(
-    caches.match(event.request).then(function(cached){
-      if(cached) return cached;
-      return fetch(event.request).then(function(res){
-        return res;
-      }).catch(function(){
-        return caches.match("/index.html");
-      });
-    })
-  );
-});
+var FALLBACK_HTML = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Sổ Bán Hàng</title></head><body style='font-family:sans-serif;padding:24px;text-align:center;'><h2>Chưa tải được trang</h2><p>Vui lòng kiểm tra kết nối mạng rồi mở lại app.</p></body></html>";
