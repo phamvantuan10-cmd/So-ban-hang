@@ -793,21 +793,4 @@ function bindEvents(){
     confirmBtn.onclick = function(){
       var cash = Number(document.getElementById("f-cash").value)||0;
       var total = Number(confirmBtn.getAttribute("data-total"));
-      if(cash<total) return;
-      completeOrder(cash);
-    };
-  }
-}
-
-renderApp();
-pullFromCloud(true).then(rerender);
-startPolling();
-
-if("serviceWorker" in navigator){
-  window.addEventListener("load", function(){
-    navigator.serviceWorker.register("/sw.js").catch(function(){});
-  });
-}
-</script>
-</body>
-</html>
+      if(cash<total
